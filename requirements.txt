@@ -8,3 +8,14 @@ openai==0.28
 tiktoken
 altair==4.2.0
 streamlit-lottie
+streamlit
+openai
+pypdf
+langchain-core
+langchain-openai
+langchain-community
+langchain-text-splitters
+faiss-cpu
+tiktoken
+requests
+streamlit-lottie
