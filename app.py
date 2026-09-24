@@ -1,4 +1,5 @@
 import base64
+import datetime
 import json
 import re
 
@@ -29,83 +30,208 @@ st.set_page_config(page_title="Apuntes inteligentes", page_icon="📚", layout="
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Literata:opsz,wght@7..72,500;7..72,700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --ink: #161B26;
-  --surface: #1F2533;
-  --line: #2C3445;
-  --paper: #E8E4DA;
-  --muted: #8A93A6;
-  --marker: #F2D35B;
+  --desk: #E4E1D8;
+  --paper: #FDFCF7;
+  --paper-2: #F4F1E7;
+  --rule: #D6E2F3;
+  --margin: #E39A9A;
+  --ink: #1E2A44;
+  --ink-soft: #4A5570;
+  --pen: #2F4DA8;
+  --pen-dark: #233B85;
+  --marker: #FFE45C;
+  --line: #B9C6DD;
 }
 
-html, body, [class*="css"], .stMarkdown, p, label, li {
-  font-family: 'Inter', system-ui, sans-serif;
+/* Escritorio y hoja */
+.stApp, [data-testid="stAppViewContainer"] { background: var(--desk); }
+[data-testid="stHeader"] { background: transparent; }
+
+.block-container, [data-testid="stMainBlockContainer"] {
+  max-width: 780px;
+  margin: 2.5rem auto 3rem;
+  padding: 3rem 2.5rem 3.5rem 5.25rem !important;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(90deg, transparent 3.6rem, var(--margin) 3.6rem,
+                    var(--margin) calc(3.6rem + 2px), transparent calc(3.6rem + 2px)),
+    repeating-linear-gradient(180deg, transparent 0, transparent 31px,
+                    var(--rule) 31px, var(--rule) 32px);
+  border-radius: 4px 14px 14px 4px;
+  box-shadow: 0 1px 0 #D2CDBF, 0 14px 32px rgba(30, 42, 68, 0.13);
 }
-h1, h2, h3 {
+
+/* Tipografía y color de texto */
+.stApp p, .stApp li, .stApp td, .stApp th { color: var(--ink); }
+.stApp, .stMarkdown { font-family: 'Inter', system-ui, sans-serif; }
+.stApp h1, .stApp h2, .stApp h3, .stApp h4 {
   font-family: 'Literata', Georgia, serif !important;
-  color: var(--paper) !important;
+  color: var(--ink) !important;
   letter-spacing: -0.01em;
 }
-
-.hero-title {
-  font-family: 'Literata', Georgia, serif;
-  font-size: clamp(2.2rem, 6vw, 3.1rem);
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--paper);
-  margin: 0.4rem 0 0.6rem 0;
+.stMarkdown p, .stMarkdown li { line-height: 1.65; }
+.stMarkdown strong {
+  background: linear-gradient(transparent 58%, rgba(255, 228, 92, 0.85) 58%);
+  padding: 0 0.1em;
+  border-radius: 2px;
 }
-.hero-title .mark {
-  background: linear-gradient(transparent 58%, rgba(242, 211, 91, 0.55) 58%);
-  padding: 0 0.12em;
-  border-radius: 4px;
+[data-testid="stWidgetLabel"] p { color: var(--ink) !important; font-weight: 600; }
+[data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p,
+.stCaption { color: var(--ink-soft) !important; }
+hr { border-color: var(--line) !important; }
+
+/* Encabezado de la página */
+.page-date {
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  color: var(--ink-soft);
+  text-align: right;
+  border-bottom: 1.5px solid var(--ink-soft);
+  width: fit-content;
+  margin-left: auto;
+  padding: 0 0.3rem;
+}
+.hero-title {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: clamp(2.8rem, 8vw, 3.8rem);
+  line-height: 1;
+  color: var(--ink);
+  margin: 0.8rem 0 0.8rem;
 }
 .hero-sub {
-  color: var(--muted);
+  color: var(--ink-soft);
   font-size: 1rem;
+  line-height: 1.6;
   max-width: 34rem;
-  margin-bottom: 1.8rem;
+  margin-bottom: 2rem;
 }
 
-.stButton > button, .stDownloadButton > button {
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  font-weight: 600;
-  transition: border-color .15s ease, transform .15s ease;
+/* Campos de texto */
+[data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="base-input"] {
+  background: #FFFFFF !important;
+  border-radius: 10px !important;
+  border-color: var(--line) !important;
 }
+.stTextArea textarea, .stTextInput input {
+  background: #FFFFFF !important;
+  color: var(--ink) !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  caret-color: var(--pen);
+}
+.stTextArea textarea::placeholder, .stTextInput input::placeholder {
+  color: #7A849A !important;
+  -webkit-text-fill-color: #7A849A !important;
+}
+
+/* Subida de archivos */
+[data-testid="stFileUploaderDropzone"] {
+  background: var(--paper-2) !important;
+  border: 1.5px dashed #9FB3D6 !important;
+  border-radius: 12px !important;
+}
+[data-testid="stFileUploaderDropzone"] span,
+[data-testid="stFileUploaderDropzone"] small,
+[data-testid="stFileUploaderDropzone"] svg { color: var(--ink-soft) !important; fill: var(--ink-soft); }
+[data-testid="stFileUploaderDropzone"] button {
+  background: #FFFFFF !important;
+  color: var(--ink) !important;
+  border: 1.5px solid var(--ink) !important;
+  border-radius: 10px !important;
+}
+[data-testid="stFileUploaderFile"] div,
+[data-testid="stFileUploaderFile"] small { color: var(--ink) !important; }
+
+/* Botones */
+.stButton > button, .stDownloadButton > button {
+  background: #FFFFFF;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  font-weight: 600;
+  min-height: 2.75rem;
+  transition: background .15s ease, transform .15s ease;
+}
+.stButton > button p, .stDownloadButton > button p { color: inherit !important; }
 .stButton > button:hover, .stDownloadButton > button:hover {
-  border-color: var(--marker);
+  background: var(--paper-2);
+  color: var(--ink);
+  border-color: var(--ink);
   transform: translateY(-1px);
 }
 .stButton > button[kind="primary"] {
-  background: var(--marker);
-  color: var(--ink);
-  border: none;
+  background: var(--pen);
+  border-color: var(--pen);
+  color: #FFFFFF;
 }
-.stButton > button:focus-visible { outline: 2px solid var(--marker); outline-offset: 2px; }
+.stButton > button[kind="primary"]:hover {
+  background: var(--pen-dark);
+  border-color: var(--pen-dark);
+  color: #FFFFFF;
+}
+.stButton > button:focus-visible, .stDownloadButton > button:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
+}
 
-[data-testid="stFileUploader"] section,
-.stTextArea textarea, .stTextInput input {
-  border-radius: 14px !important;
+/* Pestañas como separadores de cuaderno */
+.stTabs [data-baseweb="tab-list"] { gap: 0.4rem; border-bottom: 1.5px solid var(--line); }
+.stTabs [data-baseweb="tab"] { padding: 0.2rem 0.6rem; }
+.stTabs [data-baseweb="tab"] p {
+  font-family: 'Caveat', cursive;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--ink-soft) !important;
 }
-[data-testid="stExpander"] {
-  border-radius: 14px;
-  border: 1px solid var(--line);
-}
-.stTabs [data-baseweb="tab"] { font-weight: 500; }
-.stTabs [aria-selected="true"] { color: var(--marker) !important; }
+.stTabs [aria-selected="true"] p { color: var(--ink) !important; }
+.stTabs [data-baseweb="tab-highlight"] { background: var(--marker) !important; height: 5px; }
+.stTabs [data-baseweb="tab-panel"] { padding-top: 1.25rem; }
 
+/* Expanders, radios, métricas, avisos */
+[data-testid="stExpander"] details {
+  background: #FFFFFF;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px;
+}
+[data-testid="stExpander"] summary p { color: var(--ink) !important; font-weight: 600; }
+[data-testid="stRadio"] label p { color: var(--ink) !important; }
+[data-testid="stMetricLabel"] p, [data-testid="stMetricValue"] { color: var(--ink) !important; }
+[data-testid="stAlert"] p { color: var(--ink) !important; }
+[data-testid="stProgress"] p { color: var(--ink-soft) !important; }
+
+/* Barra lateral */
+[data-testid="stSidebar"] { background: var(--paper-2); border-right: 1px solid var(--line); }
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] label { color: var(--ink) !important; }
+
+/* Etiquetas de fuentes */
 .source-chip {
   display: inline-block;
-  font-size: 0.78rem;
-  color: var(--paper);
-  background: var(--surface);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--paper-2);
   border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 0.15rem 0.7rem;
+  border-radius: 6px;
+  padding: 0.15rem 0.6rem;
   margin: 0 0.35rem 0.35rem 0;
+}
+
+/* Móvil */
+@media (max-width: 640px) {
+  .block-container, [data-testid="stMainBlockContainer"] {
+    margin: 0.75rem 0.4rem 2rem;
+    padding: 2.25rem 1rem 2.5rem 2.9rem !important;
+    background-image:
+      linear-gradient(90deg, transparent 2.1rem, var(--margin) 2.1rem,
+                      var(--margin) calc(2.1rem + 2px), transparent calc(2.1rem + 2px)),
+      repeating-linear-gradient(180deg, transparent 0, transparent 31px,
+                      var(--rule) 31px, var(--rule) 32px);
+  }
+  .page-date { font-size: 1.15rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -269,8 +395,11 @@ with st.sidebar:
         st.rerun()
 
 # ───────────────────────── Encabezado ─────────────────────────
+MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+hoy = datetime.date.today()
 st.markdown(
-    '<div class="hero-title">Tus apuntes, <span class="mark">listos para estudiar</span></div>'
+    f'<div class="page-date">Fecha: {hoy.day} {MESES[hoy.month - 1]} {hoy.year}</div>'
+    '<div class="hero-title">Apuntes de clase</div>'
     '<div class="hero-sub">Sube la lectura en PDF y fotos del tablero o de tu cuaderno. '
     "Se transcriben, se unen y puedes resumir, practicar con un quiz o hacer preguntas.</div>",
     unsafe_allow_html=True,
